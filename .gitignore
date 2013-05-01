@@ -1,4 +1,16 @@
+# We'll pull our elpa code with pallet
 elpa/
+
+# Ephemeral
+eshell/history
+eshell/lastdir
+
+# startup.el is generated from startup.org
+startup.el
+
+# Don't back up my encrypted files
+*.gpg
+
 #################
 ## Eclipse
 #################
