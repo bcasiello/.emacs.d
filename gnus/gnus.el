@@ -10,8 +10,6 @@
 (add-to-list 'gnus-secondary-select-methods '(nntp "news.gwene.org"))
 (add-to-list 'gnus-secondary-select-methods '(nnimap "gmail"  (nnimap-address "imap.gmail.com") (nnimap-server-port 993) (nnimap-stream ssl)))
 
-(add-hook 'gnus-article-mode-hook (lambda () (variable-pitch-mode t)))
-
 (set-face-attribute 'gnus-summary-selected nil :background "lightblue")
 (set-face-attribute 'gnus-summary-selected-face nil :background "lightblue")
 
@@ -57,3 +55,10 @@
       gnus-sum-thread-tree-leaf-with-other "├─▶ "
       gnus-sum-thread-tree-vertical        "│"
       gnus-sum-thread-tree-single-leaf     "└─▶ ")
+
+(add-hook 'gnus-article-prepare-hook
+          (lambda ()
+            (save-excursion
+              (set-buffer gnus-article-buffer)
+              (variable-pitch-mode 1))))
+;;              (set (make-local-variable 'face-remapping-alist) '((default variable-pitch))))))
