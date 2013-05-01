@@ -42,7 +42,6 @@
 (depends-on "solarized-theme")
 (depends-on "sr-speedbar")
 (depends-on "tabbar")
-(depends-on "tabbar-ruler")
 (depends-on "typing")
 (depends-on "undo-tree")
 (depends-on "wgrep")

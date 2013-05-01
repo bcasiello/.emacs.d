@@ -1,0 +1,4 @@
+alias ll ls -l
+alias dir ll
+alias open find-file-other-window $1
+alias c cmd /c
