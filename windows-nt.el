@@ -1,0 +1,7 @@
+(setq ispell-program-name "aspell.exe")
+(setq tramp-default-method "plink")
+(setq-default epg-gpg-home-directory "~/AeroFS/gpg/")
+(setq-default epg-gpg-program "~/AeroFS/gpg/gpg.exe")
+(require 'server)
+(defun server-ensure-safe-dir (dir) "Noop" t)
+(server-start)

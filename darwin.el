@@ -1,0 +1,6 @@
+(setq ns-pop-up-frames nil)
+(setq ispell-program-name "aspell")
+(setq initial-frame-alist `((top . 0) (left . 0) (width . 180) (height . 50)))
+(add-to-list 'exec-path "/usr/local/bin")
+(setq-default epg-gpg-home-directory "~/AeroFS/gpg/")
+(setq epa-file-encrypt-to nil)
