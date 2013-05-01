@@ -1,0 +1,41 @@
+;;;; Emacs Bookmark Format Version 1 ;;;;
+;;; This format is meant to be slightly human-readable;
+;;; nevertheless, you probably don't want to edit it.
+;;; -*- End Of Bookmark File Format Version Stamp -*-
+(
+("org"
+ (filename . "~/Dropbox/org/")
+ (front-context-string . "100novels.org\n  ")
+ (rear-context-string . "297 04-16 11:46 ")
+ (position . 1))
+("gtd"
+ (filename . "~/Dropbox/org/gtd.org.gpg")
+ (front-context-string . "* Projects\n :PRO")
+ (rear-context-string)
+ (position . 1))
+("emacsnotes.org"
+ (filename . "~/Dropbox/org/emacsnotes.org")
+ (front-context-string . "* emacs\nM-space	")
+ (rear-context-string)
+ (position . 1))
+("sandbox"
+ (filename . "f:/sandbox/")
+ (front-context-string . "11CommonAgentInt")
+ (rear-context-string . "  0 12-14 14:27 ")
+ (position . 1))
+("lotro"
+ (filename . "~/dropbox/org/lotro.org")
+ (front-context-string . "* LOTRO\n** Alts\n")
+ (rear-context-string)
+ (position . 1))
+("init"
+ (filename . "~/.emacs.d/init.el")
+ (front-context-string . ";; My configurat")
+ (rear-context-string)
+ (position . 1))
+("startup"
+ (filename . "~/.emacs.d/startup.org")
+ (front-context-string . "* Initialize loa")
+ (rear-context-string)
+ (position . 1))
+)
