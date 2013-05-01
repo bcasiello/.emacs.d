@@ -1,0 +1,27 @@
+# -*- mode: snippet -*-
+# name: Doxygen Class
+# key: dc
+# expand-env: ((yas/indent-line 'fixed))
+# --
+/**
+ * @brief ${1:brief description}
+ *
+ * ${2:longer description}
+ */
+class ${3:ClassName} : public ${4:ParentClass}
+{
+public:
+	/// Default constructor
+	$3();
+    /// Destructor
+    virtual ~$3();
+    /// Assignment operator
+    $3& operator=(const $3& other);
+    /// Copy constructor
+    $3(const $3& other);
+
+	$0
+
+protected:
+private:
+};

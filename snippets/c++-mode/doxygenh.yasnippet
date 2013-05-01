@@ -1,0 +1,21 @@
+# -*- mode: snippet -*-
+# name: Doxygen C++ Header
+# key: dh
+# --
+/**
+ * @file ${1:`(file-name-nondirectory (file-name-sans-extension (buffer-file-name)))`}.h
+ *
+ * © ${2:`(format-time-string "%Y")`} Hewlett-Packard Development Company L.P.
+ * This program contains trade secrets, proprietary and confidential
+ * information of Hewlett-Packard.
+ *
+ * ${3:brief description}.
+ *
+ * ${4:longer description}
+ */
+#ifndef ${1:$(upcase text)}_H
+#define ${1:$(upcase text)}_H
+
+$0
+
+#endif // ${1:$(upcase text)}_H
