@@ -4,6 +4,7 @@ elpa/
 # Ephemeral
 eshell/history
 eshell/lastdir
+url/cache/
 
 # startup.el is generated from startup.org
 startup.el
