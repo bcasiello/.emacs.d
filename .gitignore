@@ -5,6 +5,7 @@ elpa/
 eshell/history
 eshell/lastdir
 url/cache/
+gnus/
 
 # startup.el is generated from startup.org
 startup.el
