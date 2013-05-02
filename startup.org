@@ -30,9 +30,9 @@ it!)
 
    I keep my .emacs.d in a synced folder; I don't want my server
    authentications synced, and conflict between machines.
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (defvar server-auth-dir "~/server/")
-   #+end_src
+   #+END_SRC
 ** System-specific configuration
    Load OS- and machine-specific customization.
 
@@ -44,12 +44,12 @@ it!)
 
    It is not an error for either or both of these files to be absent.
 
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (load (concat "~/.emacs.d/" (symbol-name system-type) ".el") t)
      (load (concat "~/.emacs.d/" system-name               ".el") t)
-#+end_src
+#+END_SRC
 ** My preferred settings
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (add-hook 'post-command-hook (lambda () (setq cursor-type (if (null overwrite-mode) 'bar 'box))))
      (add-to-list 'load-path "~/.emacs.d/site-lisp/")
      (delete-selection-mode 1)
@@ -72,6 +72,7 @@ it!)
      (global-undo-tree-mode 1)
      (prefer-coding-system 'utf-8)
      (put 'narrow-to-region 'disabled nil)
+     (setq-default proced-filter 'all)
      (recentf-mode 1)
      (require 'nav)
      (require 'phi-search)
@@ -131,30 +132,30 @@ it!)
                          mode-line-remote
                          "%M"))
      (setq-default frame-title-format '((:eval (if buffer-file-name "%f" "%b")) " - Emacs"))
-#+end_src
+#+END_SRC
 ** auto-complete
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (require 'auto-complete)
      (require 'auto-complete-config)
      (ac-config-default)
-   #+end_src
+   #+END_SRC
 ** auto-revert
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (global-auto-revert-mode 1)
      ;;(setq-default auto-revert-verbose nil)
      (setq-default global-auto-revert-non-file-buffers t)
-   #+end_src
+   #+END_SRC
 ** flyspell
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (eval-after-load 'flyspell
        '(progn
           (define-key flyspell-mode-map (kbd "C-c $")    'nil)
           (define-key flyspell-mode-map (kbd "C-.")      'flyspell-correct-word-before-point)
           (define-key flyspell-mode-map [C-down-mouse-1] 'flyspell-correct-word)))
      (add-hook 'message-setup-hook 'turn-on-flyspell)
-   #+end_src
+   #+END_SRC
 ** cedet
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (defun my-cedet-mode ()
        ;; select which sub-modes we want to activate
        (add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
@@ -185,9 +186,9 @@ it!)
        ;; EDE
        (global-ede-mode 1)
        (ede-enable-generic-projects))
-   #+end_src
+   #+END_SRC
 ** cc-mode
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (add-to-list 'auto-mode-alist '("\\.\\(cs\\|h\\)$"  . c++-mode))
      ;; Smart indentation - tabs are used for indent, spaces for alignment.
      ;; See https://stianse.wordpress.com/2008/11/17/indent-with-tabs-align-with-spaces/
@@ -276,13 +277,13 @@ it!)
        (ggtags-mode 1)
        (my-yasnippet))
      (add-hook 'c-mode-common-hook 'my-cc-mode-hook)
-   #+end_src
+   #+END_SRC
 ** ECB mode
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (require 'ecb-autoloads)
-   #+end_src
+   #+END_SRC
 ** emacs-lisp mode
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (defun my-lisp-mode-hook ()
        (setq indent-tabs-mode nil)
        (hs-minor-mode 1)
@@ -291,52 +292,52 @@ it!)
        (local-set-key (kbd "S-<tab>") 'hs-hide-all))
      (add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-hook)
      (add-hook 'lisp-mode-hook       'my-lisp-mode-hook)
-   #+end_src
+   #+END_SRC
 ** tags
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (setq ggtags-global-options "-v --result=grep --path-style=relative")
      (setq ggtags-global-abbreviate-filename nil)
-   #+end_src
+   #+END_SRC
 ** gnus
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (setq-default gnus-default-directory "~/.emacs.d/gnus/")
      (setq-default gnus-init-file "~/.emacs.d/gnus/gnus.el")
      (setq-default mm-text-html-renderer 'gnus-w3m)
-   #+end_src
+   #+END_SRC
 ** ido
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (ido-mode 1)
      (setq-default ido-create-new-buffer 'always)
      (setq-default ido-enable-flex-matching t)
      (setq-default ido-everywhere t)
      (setq-default ido-use-filename-at-point 'guess)
-   #+end_src
+   #+END_SRC
 ** Lua mode
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (add-to-list 'auto-mode-alist '("\\.\\(wlua\\|lp\\|lpeg\\)$" . lua-mode))
      (defun my-lua-mode-hook ()
        (linum-mode 1)
        (setq-default lua-indent-level 4)
        (my-yasnippet))
      (add-hook 'lua-mode-hook 'my-lua-mode-hook)
-   #+end_src
+   #+END_SRC
 ** message mode
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (add-hook 'message-mode-hook
                (lambda ()
                  (turn-on-flyspell)
                  (visual-line-mode 1)))
-   #+end_src
+   #+END_SRC
 ** nxml mode
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (setq-default nxml-child-indent 4)
      (setq-default nxml-outline-child-indent 4)
      (setq-default nxml-sexp-element-flag t)
      (setq-default nxml-slash-auto-complete-flag t)
      (add-to-list 'auto-mode-alist '("\\.\\(html\\|xml\\|xsl\\)$" . nxml-mode))
-   #+end_src
+   #+END_SRC
 ** org-mode
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      ;; org-mode initialization
      (defun my-org-mode-hook ()
        (defun my-save-buffer ()
@@ -404,15 +405,15 @@ it!)
        (local-set-key (kbd "C-<tab>")  'indent-according-to-mode)
        (local-set-key (kbd "C-x C-s") 'my-save-buffer))
      (add-hook 'org-mode-hook 'my-org-mode-hook)
-   #+end_src
+   #+END_SRC
 ** projects
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (projectile-global-mode)
 (setq projectile-enable-caching t)
 (setq projectile-svn-command "ack . -f --print0")
-#+end_src
+#+END_SRC
 ** TeX mode
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (defvar TeX-auto-save t)
   (defvar TeX-parse-self t)
   (defvar TeX-PDF-mode t)
@@ -422,17 +423,17 @@ it!)
   (add-hook 'LaTeX-mode-hook 'visual-line-mode)
   (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
   (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
-#+end_src
+#+END_SRC
 ** text mode
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (add-hook 'text-mode-hook
                (lambda ()
                  (turn-on-flyspell)
                  (turn-on-auto-fill)
                  (visual-line-mode 1)))
-   #+end_src
+   #+END_SRC
 ** themes
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (load-theme 'solarized-dark t)
      (auto-dim-other-buffers-mode 1)
      (set-face-background 'auto-dim-other-buffers-face "#073642")
@@ -441,48 +442,48 @@ it!)
                  (set-face-foreground 'whitespace-space-after-tab "#002b36")
                  (set-face-foreground 'whitespace-tab "#073642")
                  (set-face-foreground 'whitespace-indentation "#002b36")))
-   #+end_src
+   #+END_SRC
 ** VC diff fringe highlighting
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
      (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode)
-   #+end_src
+   #+END_SRC
 ** whitespace handling
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (global-whitespace-mode 1)
 
      (setq-default show-trailing-whitespace t)
      (setq-default whitespace-display-mappings nil)
      (setq-default whitespace-style '(face tabs trailing space-before-tab indentation space-after-tab space-mark tab-mark))
-   #+end_src
+   #+END_SRC
 ** yasnippet
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (defun my-yasnippet ()
        (require 'yasnippet)
        (yas-minor-mode 1)
        (yas-load-directory "~/.emacs.d/snippets"))
-   #+end_src
+   #+END_SRC
 ** my local defuns
 *** Switch to the next buffer in the buffer list, skipping 'uninteresting' buffers.
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-next-buffer ()
         (interactive)
         (next-buffer)
         (let ((i 0))
           (while (and (< i 50) (string-match "^\*" (buffer-name)))
             (setq i (1+ i)) (next-buffer))))
-    #+end_src
+    #+END_SRC
 *** Bound to C-x C-c, make sure we really want to exit, and not just suspend.
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-exit ()
         (interactive)
         (if (y-or-n-p "Really exit Emacs (n to suspend)? ")
             (save-buffers-kill-terminal)
           (suspend-frame)))
-    #+end_src
+    #+END_SRC
 *** Line up assignment operators
     (see http://sachachua.com/notebook/emacs/small-functions.el)
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-find-assignment ()
         (if (re-search-forward
              "[^<>=!]=\\|\\+=\\|-=\\|\\*=\\|/=\\|&=\\||=\\|\\^=\\|<<=\\|>>="
@@ -518,9 +519,9 @@ it!)
                   (indent-to-column (1+ (- indent  (- (mark) (point))))))
               (forward-line 1)))
           (widen)))
-    #+end_src
+    #+END_SRC
 *** Wrap a region with specified prefix and suffix text
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-wrap-text (begin end prefix suffix)
         "Wrap region with text"
         (interactive "r\nMPrefix: \nMSuffix: ")
@@ -531,9 +532,9 @@ it!)
             (insert prefix)
             (goto-char (point-max))
             (insert suffix))))
-    #+end_src
+    #+END_SRC
 *** Wrap a region with the specified tag (omit < and >)
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-wrap-tag (begin end tag)
         "Wrap region with text"
         (interactive "r\nMTag: ")
@@ -544,15 +545,15 @@ it!)
             (insert "<" tag ">")
             (goto-char (point-max))
             (insert "</" tag ">"))))
-    #+end_src
+    #+END_SRC
 *** Wrap a region with '#ifdef 0' and '#endif' lines
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-ifdef-out (begin end)
         (interactive "r")
         (my-wrap-text begin end "#ifdef 0\n" "#endif\n"))
-    #+end_src
+    #+END_SRC
 *** Swap the current and next line
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-move-line-down ()
         (interactive)
         (let ((col (current-column)))
@@ -561,9 +562,9 @@ it!)
             (transpose-lines 1))
           (forward-line)
           (move-to-column col)))
-    #+end_src
+    #+END_SRC
 *** Swap the current and previous line
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-move-line-up ()
         (interactive)
         (let ((col (current-column)))
@@ -571,30 +572,30 @@ it!)
             (forward-line)
             (transpose-lines -1))
           (move-to-column col)))
-    #+end_src
+    #+END_SRC
 *** Insert an empty line after the current line
     (see http://emacsredux.com/blog/2013/03/26/smarter-open-line/)
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-insert-empty-line ()
         (interactive)
         (move-end-of-line nil)
         (open-line 1)
         (forward-line 1)
         (indent-according-to-mode))
-    #+end_src
+    #+END_SRC
 *** Indent the current defun
     (see http://emacsredux.com/blog/2013/03/28/indent-defun/)
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-indent-defun ()
         "Indent the current defun."
         (interactive)
         (save-excursion
           (mark-defun)
           (indent-region (region-beginning) (region-end))))
-    #+end_src
+    #+END_SRC
 *** Search for the selected region on DuckDuckGo
     (see http://emacsredux.com/blog/2013/03/28/google/)
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-ddg ()
         (interactive)
         (browse-url
@@ -603,20 +604,20 @@ it!)
           (url-hexify-string (if mark-active
                                  (buffer-substring (region-beginning) (region-end))
                                (read-string "DuckDuckGo: "))))))
-    #+end_src
+    #+END_SRC
 *** Kill all buffers except the current one
     Don't mess with special buffers
     (see http://emacsredux.com/blog/2013/03/30/kill-other-buffers/)
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-kill-other-buffers ()
         (interactive)
         (dolist (buffer (buffer-list))
           (unless (or (eql buffer (current-buffer)) (not (buffer-file-name buffer)))
             (kill-buffer buffer))))
-    #+end_src
+    #+END_SRC
 *** Kill the current buffer and delete the file it's visiting.
     (see http://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/)
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-delete-file-and-buffer ()
         (interactive)
         (let ((filename (buffer-file-name)))
@@ -627,11 +628,11 @@ it!)
                 (delete-file filename)
                 (message "Deleted file %s" filename)
                 (kill-buffer))))))
-    #+end_src
+    #+END_SRC
 *** Save the current keyboard macro as a named function
     (see http://draketo.de/light/english/emacs/babcore)
     Note: this saves to init.el, not to startup.org
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-save-current-kbd-macro-to-dot-emacs (name)
         (interactive "SSave Macro as: ")
         (name-last-kbd-macro name)
@@ -641,10 +642,10 @@ it!)
           (insert "\n\n;; Saved macro\n")
           (insert-kbd-macro name)
           (insert "\n")))
-    #+end_src
+    #+END_SRC
 *** Bring up a full-screen eshell, or restore the previous window configuration
     (see http://irreal.org/blog/?p=1742)
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-toggle-eshell ()
         (interactive)
         (if (string= "eshell-mode" major-mode)
@@ -653,10 +654,10 @@ it!)
             (window-configuration-to-register :eshell-fullscreen)
             (eshell)
             (delete-other-windows))))
-    #+end_src
+    #+END_SRC
 *** Narrow to region into an indirect buffer
     See http://demonastery.org/2013/04/emacs-narrow-to-region-indirect/
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (defun my-narrow-to-region-indirect (start end)
         "Restrict editing in this buffer to the current region, indirectly."
         (interactive "r")
@@ -664,14 +665,14 @@ it!)
           (with-current-buffer buf
             (narrow-to-region start end))
             (switch-to-buffer buf)))
-    #+end_src
+    #+END_SRC
 *** Refactor the region into a new section
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (fset 'refactor-new-section
             [?\C-w C-end ?* ?  ?N ?e ?w ?  ?s ?e ?c ?t ?i ?o ?n return ?# ?_ S-backspace ?+ ?b ?e ?g ?i ?n ?_ ?s ?r ?c ?  ?e ?m ?a ?c ?s ?- ?l ?i ?s ?p return ?\( ?s ?e ?c ?t ?i ?o ?n ?  ?\" ?n ?a ?m ?e right return ?\C-y ?\C-e return ?# ?+ ?e ?n ?d ?_ ?s ?r ?c tab return])
-    #+end_src
+    #+END_SRC
 ** my global keybindings
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (global-set-key "\C-x4d"                'ffap-dired-other-window)
      (global-set-key "\C-x4f"                'ffap-other-window)
      (global-set-key "\C-x4r"                'ffap-read-only-other-window)
@@ -729,7 +730,7 @@ it!)
      (global-set-key [C-S-mouse-3]           'ffap-menu)
      (global-set-key [S-mouse-3]             'ffap-at-mouse)
      (global-set-key [mouse-3]               'imenu)
-   #+end_src
+   #+END_SRC
 * Spelling
   A list of words in this document that the spelling-checker doesn't like.
 #  LocalWords:  LocalWords elpa ede untabify lua ctrl refactor simp
@@ -753,4 +754,4 @@ it!)
 #  LocalWords:  nMTag ifdef endif DuckDuckGo ddg url hexify substring
 #  LocalWords:  eql backend SSave eshell fullscreen minimap bufname
 #  LocalWords:  Refactor dired prev kp nav mc ibuffer imenu buf
-#  LocalWords:  BaseVercommn
+#  LocalWords:  BaseVercommn proced

@@ -4,3 +4,4 @@
 
 ;; Tangle and load the literate startup file
 (org-babel-load-file "~/.emacs.d/startup.org")
+ '(proced-filter (quote all))
