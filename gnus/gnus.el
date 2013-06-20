@@ -1,17 +1,17 @@
-(setq auth-sources             (list (concat "~/.emacs.d/gnus/.authinfo." system-name ".gpg"))
-      gnus-select-method       '(nntp "news.eternal-september.org")
-      gnus-startup-file        "~/.emacs.d/gnus/.newsrc")
-
-(setq-default send-mail-function    'smtpmail-send-it
-              smtpmail-smtp-server  "smtp.gmail.com"
-              smtpmail-smtp-service 587)
+(setq auth-sources             (list (concat "~/.emacs.d/gnus/.authinfo." (downcase system-name) ".gpg"))
+      gnus-select-method       '(nntp "news.eternal-september.org" (nntp-record-commands t))
+      gnus-startup-file        "~/.emacs.d/gnus/.newsrc"
+      send-mail-function       'smtpmail-send-it
+      smtpmail-smtp-server     "smtp.gmail.com"
+      smtpmail-smtp-service    587
+      smtpmail-debug-info     t)
 
 (add-to-list 'gnus-secondary-select-methods '(nntp "news.grc.com"))
 (add-to-list 'gnus-secondary-select-methods '(nntp "news.gwene.org"))
 (add-to-list 'gnus-secondary-select-methods '(nnimap "gmail"  (nnimap-address "imap.gmail.com") (nnimap-server-port 993) (nnimap-stream ssl)))
 
-(set-face-attribute 'gnus-summary-selected nil :background "lightblue")
-(set-face-attribute 'gnus-summary-selected-face nil :background "lightblue")
+;(set-face-attribute 'gnus-summary-selected      nil :background "lightblue")
+;(set-face-attribute 'gnus-summary-selected-face nil :background "lightblue")
 
 (gnus-add-configuration '(group   (vertical 1.0 (group 1.0 point))))
 (gnus-add-configuration '(summary (vertical 1.0 (group 5)       (summary 1.0 point))))
@@ -38,10 +38,10 @@
 (setq gnus-face-7 'gnus-face-7)
 (copy-face 'gnus-face-7 'gnus-summary-normal-unread)
 (copy-face 'font-lock-constant-face 'gnus-face-8)
-(set-face-foreground 'gnus-face-8 "gray50")
+;(set-face-foreground 'gnus-face-8 "gray50")
 (setq gnus-face-8 'gnus-face-8)
 (copy-face 'font-lock-constant-face 'gnus-face-9)
-(set-face-foreground 'gnus-face-9 "gray70")
+;(set-face-foreground 'gnus-face-9 "gray70")
 (setq gnus-face-9 'gnus-face-9)
 (setq gnus-summary-make-false-root         'dummy
       gnus-summary-make-false-root-always  nil
@@ -61,4 +61,3 @@
             (save-excursion
               (set-buffer gnus-article-buffer)
               (variable-pitch-mode 1))))
-;;              (set (make-local-variable 'face-remapping-alist) '((default variable-pitch))))))

@@ -1,12 +1,22 @@
-#+title: Brian Casiello's Emacs configuration
+# -*-coding: utf-8-unix;-*-
+#+title: My Emacs configuration
 #+author: Brian Casiello
 #+email: bcasiello@gmail.com
 #+options: toc:4 h:4 num:nil
-#+LaTex_HEADER: \lstset{basicstyle=\ttfamily,keywordstyle=\color{blue}\bfseries,stringstyle=\color{red},commentstyle=\color{olive},showstringspaces=false}
+#+LaTeX_HEADER: \usepackage[usenames,dvipsnames]{xcolor} \lstset{frame=single,basicstyle=\footnotesize\ttfamily,keywordstyle=\color{Blue}\bfseries,stringstyle=\color{Maroon},commentstyle=\color{OliveGreen},showstringspaces=false}
 #+HTML_HEAD: <style type="text/css">\nhtml {font-family: sans-serif; font-size: 11pt; }.org-string { color: #00ff00; }.org-keyword { color:#0000ff; }.org-variable-name { color: #ff0000; }</style>
+#+LaTeX_HEADER: \usepackage[T1]{fontenc}
+#+LaTeX_HEADER: \usepackage[scaled]{beraserif}
+#+LaTeX_HEADER: \usepackage[scaled]{berasans}
+#+LaTeX_HEADER: \usepackage[scaled]{beramono}
+#+BEGIN_abstract
+Org mode[fn:: http://orgmode.org] is a convenient and powerful way to
+organize text - and what is an Emacs configuration file if not text?
+#+END_abstract
+
 * Introduction
-Inspired by Sacha Chua's example (see
-[[http://sachachua.com/blog/2012/06/literate-programming-emacs-configuration-file]])
+Inspired by Sacha Chua's example[fn::
+[[http://sachachua.com/blog/2012/06/literate-programming-emacs-configuration-file]]]
 my configuration is now a literate org-mode file, and on GitHub.
 
 This file contains code snippets taken from other sites or
@@ -24,101 +34,127 @@ find org-mode), and then use org-mode to tangle and load the literate
 initialization file (startup.org - you're soaking in it!)
 
 * Configuration
-** Server configuration
-Store server authentication outside of .emacs.d/
-
-I keep my .emacs.d in a synced folder; I don't want my server
-authentications synced, and cause conflicts between machines.
-#+BEGIN_SRC emacs-lisp
-  (defvar server-auth-dir "~/server/")
+** Themes and colors
+My current favorite is Solarized[fn::
+http://ethanschoonover.com/solarized] theme.
+#+BEGIN_SRC emacs-lisp :exports code
+;;;;;  (load-theme 'solarized-dark t)
 #+END_SRC
-** System-specific configuration
-Load OS- and machine-specific customization.
-
-Try to load a file based on the system-type variable; this will
-initialize OS-specific features. This file will be named something
-like windows-nt.el, darwin.el, or gnu/linux.el (note the latter case
-will require creating a gnu sub-directory containing linux.el)
-
+Make the active window stand out by washing out the background color
+of non-active windows.
 #+BEGIN_SRC emacs-lisp
-  (load (concat "~/.emacs.d/" (symbol-name system-type) ".el") t)
+  (auto-dim-other-buffers-mode 1)
+  (set-face-background 'auto-dim-other-buffers-face "#F4F4F4")
 #+END_SRC
+Make trailing whitespace and tabs after spaces really obvious. (We
+could make Emacs automatically delete trailing whitespace, but this
+makes for annoying changes in source control. Making them visible lets
+me fix them for myself, and decide whether to fix them in existing
+code.)
 
-Try to load a file based on the computer name; this will
-handle initialization based on the individual machine.
-
+This also makes tabs show up a little different than spaces, it's
+more subtle, but lets me match the legacy code I'm working with.
 #+BEGIN_SRC emacs-lisp
-  (load (concat "~/.emacs.d/" system-name ".el") t)
+  (global-whitespace-mode 1)
+  (setq-default show-trailing-whitespace    t
+                whitespace-display-mappings nil
+                whitespace-style '(face indentation tabs trailing
+                                        space-before-tab space-after-tab
+                                        space-mark tab-mark))
+  (add-hook 'prog-mode-hook
+            (lambda ()
+              (set-face-foreground 'whitespace-space-after-tab "#002b36")
+              (set-face-foreground 'whitespace-tab "#073642")
+              (set-face-foreground 'whitespace-indentation "#002b36")))
 #+END_SRC
-
-It is not an error for either or both of these files to be absent.
-
-** My preferred settings
-Well, this is quite the mish-mosh, innit?
+** Personal Info
 #+BEGIN_SRC emacs-lisp
-  (add-hook 'post-command-hook (lambda () (setq cursor-type (if (null overwrite-mode) 'bar 'box))))
-  (add-to-list 'load-path "~/.emacs.d/site-lisp/")
-  (delete-selection-mode 1)
-  (setq show-paren-style 'expression)
-  (electric-indent-mode 1)
+  (setq user-full-name    "Brian Casiello"
+        user-mail-address "bcasiello@gmail.com")
+#+END_SRC
+** Where things live
+My non-ELPA packages are in site-lisp. My personal dictionary gets
+synced (since .emacs.d is synced), but my backups and autosaves don't.
+#+BEGIN_SRC emacs-lisp
+   (add-to-list 'load-path              "~/.emacs.d/site-lisp/")
+   (setq auto-save-list-file-prefix     "~/autosaves/.saves-"
+         backup-directory-alist         '(("." . "~/backups"))
+         Info-additional-directory-list '("~/.emacs.d/info")
+         ispell-personal-dictionary     "~/.emacs.d/aspell.pws"
+         jiralib-url                    "http://dpjira.englab.local")
+#+END_SRC
+** EasyPG
+#+BEGIN_SRC emacs-lisp
+  (setq-default epa-file-cache-passphrase-for-symmetric-encryption t
+                epg-gpg-home-directory "~/AeroFS/gpg/")
+(setq-default epa-file-select-keys nil)
+#+END_SRC
+** ack - a better grep
+#+BEGIN_SRC emacs-lisp
   (defvar ack-history nil "History for the `ack' command.")
   (defun ack (command-args)
-    (interactive
-     (let ((ack-command "ack --nogroup --with-filename "))
-       (list (read-shell-command "Run ack (like this): "
-                                 ack-command
-                                 'ack-history))))
+    (interactive)
+    (let ((ack-command "ack --nogroup --with-filename "))
+      (list (read-shell-command "Run ack (like this): "
+                                ack-command
+                                'ack-history)))
     (let ((compilation-disable-input t))
       (compilation-start (concat command-args " < " null-device)
                          'grep-mode)))
+#+END_SRC
+** My preferred settings
+Make the cursor a vertical bar in insert mode, box in overwrite mode.
+
+Note to Vim users: Yes, yes, Emacs has modes. Maybe not the loopy-loo
+wack-a-doo modes that Vim has, but modes nonetheless.
+#+BEGIN_SRC emacs-lisp
+   (add-hook 'post-command-hook
+             (lambda ()
+               (setq cursor-type (if (null overwrite-mode) 'bar 'box))))
+#+END_SRC
+Well, this is quite the mish-mosh. TODO: Reorganize
+#+BEGIN_SRC emacs-lisp
+  (delete-selection-mode 1)
+  (electric-indent-mode 1)
   (eval-after-load 'grep '(require 'wgrep))
-  (ffap-bindings)
   (fset 'yes-or-no-p 'y-or-n-p)
   (global-hl-line-mode t)
   (global-undo-tree-mode 1)
-  (prefer-coding-system 'utf-8)
+  (nyan-mode 1)
   (put 'narrow-to-region 'disabled nil)
-  (setq-default proced-filter 'all)
   (recentf-mode 1)
   (require 'nav)
   (require 'phi-search)
   (require 'smartparens-config)
-  (setq-default auto-save-list-file-prefix "~/autosaves/.saves-")
-  (setq-default backup-directory-alist '(("." . "~/backups")))
-  (setq-default column-number-mode t)
-  (setq-default confirm-nonexistent-file-or-buffer nil)
-  (setq-default delete-by-moving-to-trash t)
-  (setq-default delete-old-versions t)
-  (setq-default ecb-options-version "2.40")
-  (setq-default epa-file-cache-passphrase-for-symmetric-encryption t)
-  (setq-default jiralib-url "http://dpjira.englab.local")
-  (setq-default frame-background-mode 'dark)
-  (setq-default fringe-mode 8)
-  (setq-default indicate-empty-lines t)
-  (setq-default inhibit-startup-screen t)
-  (setq-default initial-scratch-message nil)
-  (setq-default ispell-personal-dictionary "~/.emacs.d/aspell.pws")
-  (setq-default linum-format "%3d")
-  (setq-default list-directory-verbose-switches "-ln")
-  (setq-default nyan-bar-length 48)
-  (nyan-mode 1)
-  (setq-default read-buffer-completion-ignore-case t)
-  (setq-default scroll-conservatively 1000)
-  (setq-default semanticdb-default-save-directory "~\\semanticdb")
-  (setq-default show-paren-mode t)
-  (setq-default split-width-threshold nil)
-  (setq-default sr-attributes-display-mask '(t nil nil nil t t t))
-  (setq-default sr-listing-switches "-aln")
-  (setq-default sr-show-file-attributes t)
-  (setq-default tab-always-indent 'complete)
-  (setq-default tab-width 4)
-  (setq-default tool-bar-mode nil)
-  (setq-default track-eol t)
-  (setq-default user-full-name "Brian Casiello")
-  (setq-default user-mail-address "bcasiello@gmail.com")
-  (setq-default vc-make-backup-files t)
-  (setq-default version-control t)
-  (setq-default x-stretch-cursor t)
+  (setq-default
+                column-number-mode                 t
+                confirm-nonexistent-file-or-buffer nil
+                delete-by-moving-to-trash          t
+                delete-old-versions                t
+                frame-title-format                 '((:eval (if buffer-file-name "%f" "%b")) " - Emacs")
+                fringe-mode                        8
+                indent-guide-mode                  t
+                indicate-empty-lines               t
+                inhibit-startup-screen             t
+                initial-scratch-message            nil
+                linum-format                       "%3d"
+                list-directory-verbose-switches    "-ln"
+                mm-text-html-renderer              'gnus-w3m
+                nyan-bar-length                    48
+                proced-filter                      'all
+                read-buffer-completion-ignore-case t
+                scroll-conservatively              1000
+                show-paren-mode                    t
+                show-paren-style                   'expression
+                split-width-threshold              nil
+                tab-always-indent                  'complete
+                tab-width                          4
+                tool-bar-mode                      nil
+                track-eol                          t
+                vc-make-backup-files               t
+                version-control                    t
+                x-stretch-cursor                   t
+)
   (show-paren-mode t)
   (smartparens-global-mode 1)
   (tool-bar-mode 0)
@@ -137,7 +173,6 @@ Well, this is quite the mish-mosh, innit?
                       mode-line-client
                       mode-line-remote
                       "%M"))
-  (setq-default frame-title-format '((:eval (if buffer-file-name "%f" "%b")) " - Emacs"))
 #+END_SRC
 ** auto-complete
 There are like a million auto-completion packages for Emacs, I use
@@ -171,165 +206,84 @@ Control-clicking the left mouse button corrects the word that was clicked.
        (define-key flyspell-mode-map (kbd "C-.")      'flyspell-correct-word-before-point)
        (define-key flyspell-mode-map [C-down-mouse-1] 'flyspell-correct-word)))
 #+END_SRC
-** cedet
-#+BEGIN_SRC emacs-lisp
-  (defun my-cedet-mode ()
-    ;; select which sub-modes we want to activate
-    (add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
-    (add-to-list 'semantic-default-submodes 'global-semanticdb-minor-mode)
-    (add-to-list 'semantic-default-submodes 'global-semantic-idle-scheduler-mode)
-    (add-to-list 'semantic-default-submodes 'global-semantic-stickyfunc-mode)
-    (add-to-list 'semantic-default-submodes 'global-semantic-highlight-func-mode)
-    (add-to-list 'semantic-default-submodes 'global-semanticdb-minor-mode)
-
-    ;; Activate semantic
-    (semantic-mode 1)
-
-    (local-set-key [(control return)] 'semantic-ia-complete-symbol-menu)
-    (local-set-key "\C-c?" 'semantic-ia-complete-symbol)
-    (local-set-key "\C-c>" 'semantic-complete-analyze-inline)
-    (local-set-key "\C-c=" 'semantic-decoration-include-visit)
-    (local-set-key "\C-cj" 'semantic-ia-fast-jump)
-    (local-set-key "\C-cq" 'semantic-ia-show-doc)
-    (local-set-key "\C-cs" 'semantic-ia-show-summary)
-    (local-set-key "\C-ct" 'eassist-switch-h-cpp)
-    (local-set-key "\C-xt" 'eassist-switch-h-cpp)
-    (local-set-key "\C-ce" 'eassist-list-methods)
-    (local-set-key "\C-c\C-r" 'semantic-symref)
-
-    (semanticdb-enable-gnu-global-databases 'c-mode t)
-    (semanticdb-enable-gnu-global-databases 'c++-mode t)
-
-    ;; EDE
-    (global-ede-mode 1)
-    (ede-enable-generic-projects))
-#+END_SRC
 ** cc-mode
+Set up for C and C++ code. Indentation, line numbers, yasnippet, and
+tags mode.
 #+BEGIN_SRC emacs-lisp
   (add-to-list 'auto-mode-alist '("\\.\\(cs\\|h\\)$"  . c++-mode))
   ;; Smart indentation - tabs are used for indent, spaces for alignment.
+  ;; See http://www.emacswiki.org/emacs/SmartTabs
   ;; See https://stianse.wordpress.com/2008/11/17/indent-with-tabs-align-with-spaces/
-  (defvar c-elements-to-align-with-spaces
-    (list 'func-decl-cont
-          'topmost-intro-cont
-          'arglist-cont
-          'arglist-cont-nonempty
-          'statement-cont
-          'c
-          'inher-cont
-          'member-init-cont
-          'template-args-cont
-          'objc-method-args-cont
-          'objc-method-call-cont)
-    "List of syntactic elements that should be aligned with spaces.
-    If you find an element you want to align with spam-report-process-queue but is not handled here,
-    find the syntactic element with C-c C-s or M-x c-show-syntactic-information
-    and simply add it to the list.")
-  (defun c-context-continuation-p (context)
-    "Returns t if the given context is part of a continuation, i.e.
-    it should be aligned with spaces. The syntactic elements defined
-    as being a part of a continuation is defined by the variable
-    c-elements-to-align-with-spaces."
-    (let ((continuation nil))
-      (dolist (elem c-elements-to-align-with-spaces continuation)
-        (when (assq elem context)
-          (setq continuation t)))))
-  (defun c-indent-align-with-spaces-hook ()
-    "If indent-tabs-mode is nil this function does nothing. If
-    indent-tabs-mode is enabled and if current indentation is an
-    alignment operation, this function will format the line so that
-    tabs are used until the indent level of the previous line and use
-    spaces for the rest (the alignment)."
-    (interactive)
-    (defvar c-syntactic-context)
-    (when indent-tabs-mode
-      (let ((context c-syntactic-context)
-            (curr-indent (current-indentation))
-            (base-indent nil))
-        (when (c-context-continuation-p context)
-          (save-excursion
-            ;; Find indentation of nearest not-continuation context
-            (do ()
-                ((not (c-context-continuation-p context)))
-              (goto-char (c-langelem-pos (car context)))
-              (setq context (c-guess-basic-syntax)))
-            (while (not (c-context-continuation-p context))
-              (goto-char (c-langelem-pos (car context)))
-              (setq context (c-guess-basic-syntax)))
-            (setq base-indent (current-indentation)))
-          ;; Untabify region between base indent and current indent
-          (let ((end (point)))
-            (save-excursion
-              (while (> (current-column) base-indent)
-                (backward-char))
-              (untabify (point) end)))
-          ;; We might need to adjust the marker to a more correct/practical
-          ;; position.
-          (when (= (current-column) base-indent)
-            (back-to-indentation))))))
+  (autoload 'smart-tabs-mode "smart-tabs-mode"
+    "Intelligently indent with tabs, align with spaces!")
+  (autoload 'smart-tabs-mode-enable "smart-tabs-mode")
+  (autoload 'smart-tabs-advice "smart-tabs-mode")
+  (smart-tabs-advice c-indent-line c-basic-offset)
+  (smart-tabs-advice c-indent-region c-basic-offset)
+
   (defun my-cc-mode-hook ()
-    (when (not (featurep 'cedet-devel-load))
-      (my-cedet-mode))
+    (smart-tabs-mode-enable)
     (c-set-style "stroustrup")
     (c-set-offset 'innamespace 0)
     (c-toggle-auto-newline 1)
-    (setq-default c-basic-offset 4)
-    (setq-default c-doc-comment-style '((c-mode . javadoc) (c++-mode . javadoc) (java-mode . javadoc)))
-    (setq-default c-hanging-braces-alist '(
-                                           (block-close . c-snug-do-while)
-                                           (statement-cont)
-                                           (substatement-open before after)
-                                           (brace-list-open)
-                                           (brace-entry-open)
-                                           (extern-lang-open after)
-                                           (namespace-open after)
-                                           (module-open after)
-                                           (composition-open after)
-                                           (inexpr-class-open after)
-                                           (inexpr-class-close before)
-                                           (arglist-cont-nonempty)))
-    (setq-default c-indent-comments-syntactically-p t)
-    (setq-default c-special-indent-hook '(c-indent-align-with-spaces-hook))
     (linum-mode 1)
     (ggtags-mode 1)
-    (my-yasnippet))
+    (my-yasnippet)
+    (setq-default c-basic-offset                    4
+                  c-doc-comment-style               '((c-mode . javadoc) (c++-mode . javadoc) (java-mode . javadoc))
+                  c-indent-comments-syntactically-p t
+                  c-special-indent-hook             '(c-indent-align-with-spaces-hook)
+                  c-hanging-braces-alist            '(
+                                                      (block-close . c-snug-do-while)
+                                                      (statement-cont)
+                                                      (substatement-open before after)
+                                                      (brace-list-open)
+                                                      (brace-entry-open)
+                                                      (extern-lang-open after)
+                                                      (namespace-open after)
+                                                      (module-open after)
+                                                      (composition-open after)
+                                                      (inexpr-class-open after)
+                                                      (inexpr-class-close before)
+                                                      (arglist-cont-nonempty))))
   (add-hook 'c-mode-common-hook 'my-cc-mode-hook)
-#+END_SRC
-** ECB mode
-#+BEGIN_SRC emacs-lisp
-  (require 'ecb-autoloads)
 #+END_SRC
 ** emacs-lisp mode
 #+BEGIN_SRC emacs-lisp
-  (defun my-lisp-mode-hook ()
-    (setq indent-tabs-mode nil)
-    (hs-minor-mode 1)
-    (linum-mode 1)
-    (local-set-key (kbd "C-<tab>") 'hs-toggle-hiding)
-    (local-set-key (kbd "S-<tab>") 'hs-hide-all))
-  (add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-hook)
-  (add-hook 'lisp-mode-hook       'my-lisp-mode-hook)
+   (defun my-lisp-mode-hook ()
+     (setq indent-tabs-mode nil)
+     (hs-minor-mode 1)
+     (turn-on-eldoc-mode)
+     (linum-mode 1)
+     (local-set-key (kbd "C-<tab>") 'hs-toggle-hiding)
+     (local-set-key (kbd "S-<tab>") 'hs-hide-all))
+   (add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-hook)
+   (add-hook 'lisp-mode-hook       'my-lisp-mode-hook)
 #+END_SRC
 ** tags
+Using global/gtags for tagging. This may change in 3.. 2.. 1..
 #+BEGIN_SRC emacs-lisp
   (setq ggtags-global-options "-v --result=grep --path-style=relative")
   (setq ggtags-global-abbreviate-filename nil)
 #+END_SRC
 ** gnus
+Where to find my gnus setup. Most of the configuration is in gnus.el
 #+BEGIN_SRC emacs-lisp
-  (setq-default gnus-default-directory "~/.emacs.d/gnus/")
-  (setq-default gnus-init-file "~/.emacs.d/gnus/gnus.el")
-  (setq-default mm-text-html-renderer 'gnus-w3m)
+  (setq-default gnus-default-directory "~/.emacs.d/gnus/"
+                gnus-init-file (concat gnus-default-directory "gnus.el"))
 #+END_SRC
 ** ido
+ido - the mode that would marry you
 #+BEGIN_SRC emacs-lisp
   (ido-mode 1)
-  (setq-default ido-create-new-buffer 'always)
-  (setq-default ido-enable-flex-matching t)
-  (setq-default ido-everywhere t)
-  (setq-default ido-use-filename-at-point 'guess)
+  (setq-default ido-create-new-buffer     'always
+                ido-enable-flex-matching  t
+                ido-everywhere            t
+                ido-use-filename-at-point 'guess)
+  (global-set-key (kbd "C-x C-f")         'ido-find-file)
 #+END_SRC
 ** Lua mode
+Lua programming - line numbers and yasnippets
 #+BEGIN_SRC emacs-lisp
   (add-to-list 'auto-mode-alist '("\\.\\(wlua\\|lp\\|lpeg\\)$" . lua-mode))
   (defun my-lua-mode-hook ()
@@ -339,6 +293,7 @@ Control-clicking the left mouse button corrects the word that was clicked.
   (add-hook 'lua-mode-hook 'my-lua-mode-hook)
 #+END_SRC
 ** message mode
+Should this go in gnus.el?
 #+BEGIN_SRC emacs-lisp
   (add-hook 'message-mode-hook
             (lambda ()
@@ -347,6 +302,7 @@ Control-clicking the left mouse button corrects the word that was clicked.
   (add-hook 'message-setup-hook 'turn-on-flyspell)
 #+END_SRC
 ** nxml mode
+XML and HTML editing
 #+BEGIN_SRC emacs-lisp
   (setq-default nxml-child-indent 4)
   (setq-default nxml-outline-child-indent 4)
@@ -355,33 +311,48 @@ Control-clicking the left mouse button corrects the word that was clicked.
   (add-to-list 'auto-mode-alist '("\\.\\(html\\|xml\\|xsl\\)$" . nxml-mode))
 #+END_SRC
 ** org-mode
+This is where I spend a lot of my time, so there's much to do!
 #+BEGIN_SRC emacs-lisp
-  ;; org-mode initialization
-  (defun my-org-mode-hook ()
-    (defun my-save-buffer ()
-      "Save buffer, generating org agendas if we're saving the default org notes file"
-      (interactive)
-      (when (string= (upcase (expand-file-name org-default-notes-file)) (upcase (expand-file-name buffer-file-name)))
-        (org-store-agenda-views))
-      (save-buffer))
-    (defvar org-capture-templates `(("t" "Todo"    entry (file+olp ,org-default-notes-file "Capture" "Tasks")   "* TODO %^{Action} %^g\n%?\n%i\n\tAdded: %U\n")
-                                    ("j" "Journal" entry (file+olp ,org-default-notes-file "Capture" "Journal") "* %U %?\n%i\n%a\n")
-                                    ("n" "Note"    entry (file+olp ,org-default-notes-file "Capture" "Notes")   "* %^{Title}\n%?\n%i\n%a\n\tAdded: %U\n")
-                                    ("c" "Capture" entry (file+olp ,org-default-notes-file "Capture" "Capture") "* %^{Title}\n%?\n%i\n%a\n\tAdded: %U\n")
-                                    ("d" "Dream"   entry (file+olp ,org-default-notes-file "Capture" "Dreams")  "* %u\n%?\n%i\n%a\n")))
-    (require 'org-crypt)
-    (require 'ox-latex)
-    (setq org-latex-listings t)
-    (add-to-list 'org-latex-packages-alist '("" "listings"))
-    (add-to-list 'org-latex-packages-alist '("" "color"))
-    (setq org-html-htmlize-output-type 'css)
-    (org-crypt-use-before-save-magic)
-    (turn-on-flyspell)
-    (setq auto-save-default nil)
-    (setq indent-tabs-mode nil)
     (setq-default org-agenda-compact-blocks t)
-    (setq-default org-agenda-custom-commands '(
-                                               ("d" "Daily Agenda"
+    (setq-default org-agenda-files '("~/AeroFS/org/gtd.org"))
+    (setq-default org-agenda-prefix-format
+                  '((agenda . " %?-12t% s") (timeline . "  % s") (todo . " ") (tags . " ") (search . " ")))
+    (setq-default org-agenda-remove-tags t)
+    (setq-default org-columns-default-format
+                  " %38ITEM(Details) %TAGS(Context) %7TODO(To Do) %5Effort(Time){:} %6CLOCKSUM{Total}")
+    (setq-default org-confirm-babel-evaluate nil)
+    (setq-default org-crypt-key nil)
+    (setq-default org-default-notes-file "~/AeroFS/org/gtd.org")
+    (setq-default org-directory "~/AeroFS/org")
+    (setq-default org-ditaa-jar-path "c:/emacs/lisp/contrib/scripts/ditaa.jar")
+    (setq-default org-feed-alist
+                  '(("ReQall"
+                     "http://www.reqall.com/user/feeds/rss/83eb18646f7cc30ad2990374f127e21c3db3aa63"
+                     "~/AeroFS/org/gtd.org"
+                     "ReQall")))
+    (setq-default org-fontify-done-headline t)
+    (setq-default org-hide-leading-stars t)
+    (setq-default org-html-htmlize-output-type 'css)
+    (setq-default org-latex-listings t)
+    (setq-default org-log-repeat nil)
+    (setq-default org-mobile-directory "~/Dropbox/Apps/MobileOrg")
+    (setq-default org-mobile-inbox-for-pull "~/AeroFS/org/from-mobile.org")
+    (setq-default org-startup-indented t)
+    (setq org-mobile-use-encryption t)
+    (load "~/AeroFS/org-mode.el")
+    (setq-default org-stuck-projects
+                  '("+Level=2+CATEGORY=\"Project\"" ("Next" "TODO" "WaitingFor") nil nil))
+    (setq-default org-support-shift-select t)
+    (setq-default org-tag-alist
+                  '(("Home" . 104) ("Work" . 119) ("Errands" . 101) ("Calendar" . 99)))
+    (setq-default org-tags-exclude-from-inheritance '("crypt"))
+    (setq-default org-capture-templates
+                  `(("t" "Todo"    entry (file+olp ,org-default-notes-file "Capture" "Tasks")   "* TODO %^{Action} %^g\n%?\n%i\nAdded: %U\n")
+                    ("j" "Journal" entry (file+olp ,org-default-notes-file "Capture" "Journal") "* %U %?\n%i\n%a\n")
+                    ("n" "Note"    entry (file+olp ,org-default-notes-file "Capture" "Notes")   "* %^{Title}\n%?\n%i\n%a\n\tAdded: %U\n")
+                    ("c" "Capture" entry (file+olp ,org-default-notes-file "Capture" "Capture") "* %^{Title}\n%?\n%i\n%a\n\tAdded: %U\n")
+                    ("d" "Dream"   entry (file+olp ,org-default-notes-file "Capture" "Dreams")  "* %u\n%?\n%i\n%a\n")))
+    (setq-default org-agenda-custom-commands '(("d" "Daily Agenda"
                                                 ((agenda ""
                                                          ((org-agenda-span 1)
                                                           (org-agenda-sorting-strategy '((agenda time-up priority-down tag-up)))
@@ -401,34 +372,67 @@ Control-clicking the left mouse button corrects the word that was clicked.
                                                  (tags "CATEGORY=\"Someday\"" nil)
                                                  (todo "WaitingFor" nil)
                                                  (todo "InReview" nil)
-                                                 ) nil)))
-    (setq-default org-agenda-files '("~/dropbox/org/gtd.org.gpg"))
-    (setq-default org-agenda-prefix-format '((agenda . " %?-12t% s") (timeline . "  % s") (todo . " ") (tags . " ") (search . " ")))
-    (setq-default org-agenda-remove-tags t)
-    (setq-default org-columns-default-format " %38ITEM(Details) %TAGS(Context) %7TODO(To Do) %5Effort(Time){:} %6CLOCKSUM{Total}")
-    (setq-default org-crypt-key nil)
-    (setq-default org-default-notes-file "~/dropbox/org/gtd.org.gpg")
-    (setq-default org-directory "~/dropbox/org")
-    (setq-default org-fontify-done-headline t)
-    (setq-default org-hide-leading-stars t)
-    (setq-default org-log-repeat nil)
-    (setq-default org-startup-indented t)
-    (setq-default org-stuck-projects '("+Level=2+CATEGORY=\"Project\"" ("Next" "TODO" "WaitingFor") nil nil))
-    (setq-default org-support-shift-select t)
-    (setq-default org-tag-alist '(("Home" . 104) ("Work" . 119) ("Errands" . 101) ("Calendar" . 99)))
-    (setq-default org-tags-exclude-from-inheritance '("crypt"))
-    (local-set-key (kbd "C-c a")   'org-agenda)
-    (local-set-key (kbd "M-a")     'org-archive-subtree)
-    (local-set-key (kbd "C-M-t")   'org-table-create-or-convert-from-region)
-    (local-set-key (kbd "C-<tab>")  'indent-according-to-mode)
-    (local-set-key (kbd "C-x C-s") 'my-save-buffer))
-  (add-hook 'org-mode-hook 'my-org-mode-hook)
-#+END_SRC
-** projects
-#+BEGIN_SRC emacs-lisp
-  (projectile-global-mode)
-  (setq projectile-enable-caching t)
-  (setq projectile-svn-command "ack . -f --print0")
+                                                 ) nil)
+                                               ("z" "All TODO" todo "TODO")
+                                               ("x" "Agenda" agenda "")))
+  (defun my-save-buffer ()
+    "Save buffer, generating org agendas if we're saving the default org notes file"
+    (interactive)
+    (when (string= (upcase (expand-file-name org-default-notes-file)) (upcase (expand-file-name buffer-file-name)))
+      (org-store-agenda-views)
+      (org-mobile-push))
+    (save-buffer))
+;; See http://www.emacswiki.org/emacs/mobileorg
+  (defun my-org-convert-incoming-items ()
+    (interactive)
+    (with-current-buffer (find-file-noselect org-mobile-inbox-for-pull)
+      (goto-char (point-min))
+      (while (re-search-forward "^\\* " nil t)
+        (goto-char (match-beginning 0))
+        (insert "**")
+        (forward-char 2)
+        (insert "TODO ")
+        (goto-char (line-beginning-position))
+        (forward-line)
+        (insert
+         (format
+          " SCHEDULED: %s\n:PROPERTIES:\n:ID: %s\n:END:\n"
+          (with-temp-buffer (org-insert-time-stamp (current-time)))
+          (shell-command-to-string "uuidgen"))))
+      (let ((tasks (buffer-string)))
+        (erase-buffer)
+        (save-buffer)
+        (kill-buffer (current-buffer))
+        (with-current-buffer (find-file-noselect org-default-notes-file)
+          (save-excursion
+            (goto-char (point-min))
+            (search-forward "** MobileOrg\n")
+            (goto-char (match-end 0))
+            (insert tasks))))))
+  (add-hook 'org-mobile-post-pull-hook 'my-org-convert-incoming-items)
+  (defun my-org-pull ()
+    "Pull new entries from MobileOrg and RSS feeds"
+    (interactive)
+    (org-feed-update-all)
+    (org-mobile-pull))
+    (defun my-org-mode-hook ()
+      (require 'ox-latex)
+      (add-to-list 'org-latex-packages-alist '("" "listings"))
+      (add-to-list 'org-latex-packages-alist '("" "color"))
+      (add-to-list 'org-babel-load-languages '(ditaa . t))
+      (add-to-list 'org-drawers "PRELUDE")
+      (require 'org-crypt)
+      (require 'org-mobile)
+      (turn-on-flyspell)
+      (setq auto-save-default nil)
+      (setq indent-tabs-mode nil)
+      (local-set-key (kbd "C-c a")   'org-agenda)
+      (local-set-key (kbd "M-a")     'org-archive-subtree)
+      (local-set-key (kbd "M-p")     'my-org-pull)
+      (local-set-key (kbd "C-M-t")   'org-table-create-or-convert-from-region)
+      (local-set-key (kbd "C-<tab>")  'indent-according-to-mode)
+      (local-set-key (kbd "C-x C-s") 'my-save-buffer))
+    (add-hook 'org-mode-hook 'my-org-mode-hook)
 #+END_SRC
 ** TeX mode
 #+BEGIN_SRC emacs-lisp
@@ -450,28 +454,12 @@ Control-clicking the left mouse button corrects the word that was clicked.
               (turn-on-auto-fill)
               (visual-line-mode 1)))
 #+END_SRC
-** themes
-#+BEGIN_SRC emacs-lisp
-  (load-theme 'solarized-dark t)
-  (auto-dim-other-buffers-mode 1)
-  (set-face-background 'auto-dim-other-buffers-face "#073642")
-  (add-hook 'prog-mode-hook
-            (lambda ()
-              (set-face-foreground 'whitespace-space-after-tab "#002b36")
-              (set-face-foreground 'whitespace-tab "#073642")
-              (set-face-foreground 'whitespace-indentation "#002b36")))
-#+END_SRC
 ** VC diff fringe highlighting
+Puts markers in the fringe for changed areas of version-controlled
+files.
 #+BEGIN_SRC emacs-lisp
   (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
   (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode)
-#+END_SRC
-** whitespace handling
-#+BEGIN_SRC emacs-lisp
-  (global-whitespace-mode 1)
-  (setq-default show-trailing-whitespace t)
-  (setq-default whitespace-display-mappings nil)
-  (setq-default whitespace-style '(face tabs trailing space-before-tab indentation space-after-tab space-mark tab-mark))
 #+END_SRC
 ** yasnippet
 #+BEGIN_SRC emacs-lisp
@@ -487,8 +475,13 @@ Control-clicking the left mouse button corrects the word that was clicked.
     (interactive)
     (next-buffer)
     (let ((i 0))
-      (while (and (< i 50) (string-match "^\*" (buffer-name)))
+      (while
+          (and
+           (< i 50)
+           (string-match "^\*" (buffer-name))
+           (not (string-match "^\*Group\*" (buffer-name))))
         (setq i (1+ i)) (next-buffer))))
+  (global-set-key (kbd "<f2>") 'my-next-buffer)
 #+END_SRC
 *** Bound to C-x C-c, make sure we really want to exit, and not just suspend.
 #+BEGIN_SRC emacs-lisp
@@ -501,41 +494,10 @@ Control-clicking the left mouse button corrects the word that was clicked.
 *** Line up assignment operators
 (see http://sachachua.com/notebook/emacs/small-functions.el)
 #+BEGIN_SRC emacs-lisp
-  (defun my-find-assignment ()
-    (if (re-search-forward
-         "[^<>=!]=\\|\\+=\\|-=\\|\\*=\\|/=\\|&=\\||=\\|\\^=\\|<<=\\|>>="
-         (save-excursion (end-of-line) (point)) t)
-        (progn
-          (goto-char (match-beginning 0))
-          (if (looking-at ".==")
-              nil
-            (if (looking-at "\\+=\\|-=\\|\\*=\\|/=\\|&=\\||=\\|\\^=\\|<<=\\|>>=")
-                (set-mark (match-end 0))
-              (forward-char 1)
-              (set-mark (1+ (point))))
-            (delete-horizontal-space)
-            t))
-      nil))
-  (defun my-align-equals (start end)
-    (interactive "*r")
-    (save-excursion
-      (let ((indent 0))
-        (narrow-to-region start end)
-        (goto-char (point-min))
-        (while (not (eobp))
-          (if (my-find-assignment)
-              (progn
-                (exchange-point-and-mark)
-                (setq indent (max indent (current-column)))
-                (delete-horizontal-space)
-                (insert " ")))
-          (forward-line 1))
-        (goto-char (point-min))
-        (while (not (eobp))
-          (if (my-find-assignment)
-              (indent-to-column (1+ (- indent  (- (mark) (point))))))
-          (forward-line 1)))
-      (widen)))
+  (defadvice align-regexp
+    (around align-regexp-around activate)
+    (let ((indent-tabs-mode nil) (align-to-tab-stop nil))
+      ad-do-it))
 #+END_SRC
 *** Wrap a region with specified prefix and suffix text
 #+BEGIN_SRC emacs-lisp
@@ -562,12 +524,14 @@ Control-clicking the left mouse button corrects the word that was clicked.
         (insert "<" tag ">")
         (goto-char (point-max))
         (insert "</" tag ">"))))
+  (global-set-key (kbd "M-<") 'my-wrap-tag)
 #+END_SRC
 *** Wrap a region with '#ifdef 0' and '#endif' lines
 #+BEGIN_SRC emacs-lisp
   (defun my-ifdef-out (begin end)
     (interactive "r")
     (my-wrap-text begin end "#ifdef 0\n" "#endif\n"))
+  (global-set-key (kbd "M-#") 'my-ifdef-out)
 #+END_SRC
 *** Swap the current and next line
 #+BEGIN_SRC emacs-lisp
@@ -579,6 +543,7 @@ Control-clicking the left mouse button corrects the word that was clicked.
         (transpose-lines 1))
       (forward-line)
       (move-to-column col)))
+  (global-set-key (kbd "<C-S-down>") 'my-move-line-down)
 #+END_SRC
 *** Swap the current and previous line
 #+BEGIN_SRC emacs-lisp
@@ -589,6 +554,7 @@ Control-clicking the left mouse button corrects the word that was clicked.
         (forward-line)
         (transpose-lines -1))
       (move-to-column col)))
+  (global-set-key (kbd "<C-S-up>") 'my-move-line-up)
 #+END_SRC
 *** Insert an empty line after the current line
 (see http://emacsredux.com/blog/2013/03/26/smarter-open-line/)
@@ -599,6 +565,7 @@ Control-clicking the left mouse button corrects the word that was clicked.
     (open-line 1)
     (forward-line 1)
     (indent-according-to-mode))
+  (global-set-key [(shift return)]        'my-insert-empty-line)
 #+END_SRC
 *** Indent the current defun
 (see http://emacsredux.com/blog/2013/03/28/indent-defun/)
@@ -609,18 +576,21 @@ Control-clicking the left mouse button corrects the word that was clicked.
     (save-excursion
       (mark-defun)
       (indent-region (region-beginning) (region-end))))
+  (global-set-key (kbd "C-M-z")           'my-indent-defun)
 #+END_SRC
 *** Search for the selected region on DuckDuckGo
 (see http://emacsredux.com/blog/2013/03/28/google/)
 #+BEGIN_SRC emacs-lisp
-  (defun my-ddg ()
-    (interactive)
-    (browse-url
-     (concat
-      "https://duckduckgo.com/?q="
-      (url-hexify-string (if mark-active
-                             (buffer-substring (region-beginning) (region-end))
-                           (read-string "DuckDuckGo: "))))))
+   (defun my-ddg ()
+     (interactive)
+     (browse-url
+      (concat
+       "https://duckduckgo.com/?q="
+       (url-hexify-string
+        (if mark-active
+            (buffer-substring (region-beginning) (region-end))
+          (read-string "DuckDuckGo: "))))))
+   (global-set-key (kbd "C-c s") 'my-ddg)
 #+END_SRC
 *** Kill all buffers except the current one
 Don't mess with special buffers
@@ -631,6 +601,7 @@ Don't mess with special buffers
     (dolist (buffer (buffer-list))
       (unless (or (eql buffer (current-buffer)) (not (buffer-file-name buffer)))
         (kill-buffer buffer))))
+  (global-set-key (kbd "C-c k") 'my-kill-other-buffers)
 #+END_SRC
 *** Kill the current buffer and delete the file it's visiting.
 (see http://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/)
@@ -645,6 +616,7 @@ Don't mess with special buffers
             (delete-file filename)
             (message "Deleted file %s" filename)
             (kill-buffer))))))
+  (global-set-key (kbd "C-c d") 'my-delete-file-and-buffer)
 #+END_SRC
 *** Save the current keyboard macro as a named function
 (see http://draketo.de/light/english/emacs/babcore)
@@ -659,7 +631,7 @@ Note: this saves to init.el, not to startup.org
       (insert "\n\n;; Saved macro\n")
       (insert-kbd-macro name)
       (insert "\n")))
-    #+END_SRC
+#+END_SRC
 *** Bring up a full-screen eshell, or restore the previous window configuration
 (see http://irreal.org/blog/?p=1742)
 #+BEGIN_SRC emacs-lisp
@@ -671,6 +643,7 @@ Note: this saves to init.el, not to startup.org
         (window-configuration-to-register :eshell-fullscreen)
         (eshell)
         (delete-other-windows))))
+  (global-set-key (kbd "C-c e") 'my-toggle-eshell)
 #+END_SRC
 *** Narrow to region into an indirect buffer
 See http://demonastery.org/2013/04/emacs-narrow-to-region-indirect/
@@ -682,76 +655,117 @@ See http://demonastery.org/2013/04/emacs-narrow-to-region-indirect/
       (with-current-buffer buf
         (narrow-to-region start end))
         (switch-to-buffer buf)))
+  (global-set-key (kbd "C-c n")           'my-narrow-to-region-indirect)
 #+END_SRC
 *** Refactor the region into a new section
+A captured keyboard macro! Careful, it's not used to captivity, and
+may bite!
 #+BEGIN_SRC emacs-lisp
-  (fset 'refactor-new-section
-        [?\C-w C-end ?* ?  ?N ?e ?w ?  ?s ?e ?c ?t ?i ?o ?n return ?# ?_ S-backspace ?+ ?b ?e ?g ?i ?n ?_ ?s ?r ?c ?  ?e ?m ?a ?c ?s ?- ?l ?i ?s ?p return ?\( ?s ?e ?c ?t ?i ?o ?n ?  ?\" ?n ?a ?m ?e right return ?\C-y ?\C-e return ?# ?+ ?e ?n ?d ?_ ?s ?r ?c tab return])
+  (fset 'refactor-new-section [?\C-w C-end ?* ?  ?N ?e ?w ?  ?s ?e
+        ?c ?t ?i ?o ?n return ?# ?_ S-backspace ?+ ?b ?e ?g ?i ?n
+        ?_ ?s ?r ?c ?  ?e ?m ?a ?c ?s ?- ?l ?i ?s ?p return ?\( ?s
+        ?e ?c ?t ?i ?o ?n ?  ?\" ?n ?a ?m ?e right return ?\C-y
+        ?\C-e return ?# ?+ ?e ?n ?d ?_ ?s ?r ?c tab return])
+#+END_SRC
+*** Smarter move-beginning-of-line
+Moves point to first non-whitespace character. If already there, move
+to beginning of line.
+See http://emacsredux.com/blog/2013/05/22/smarter-navigation-to-the-beginning-of-a-line/
+(With all the emacsredux links in here, one wonders if I oughtn't just
+switch to Prelude.)
+#+BEGIN_SRC emacs-lisp
+  (defun my-move-to-bol (arg)
+    "Move point back to indentation of beginning of line.
+
+  Move point to the first non-whitespace character on this line.
+  If point is already there, move to the beginning of the line.
+  Effectively toggle between the first non-whitespace character and
+  the beginning of the line.
+
+  If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+  point reaches the beginning or end of the buffer, stop there."
+    (interactive "^p")
+    (setq arg (or arg 1))
+
+    ;; Move lines first
+    (when (/= arg 1)
+      (let ((line-move-visual nil))
+        (forward-line (1- arg))))
+
+    (let ((orig-point (point)))
+      (back-to-indentation)
+      (when (= orig-point (point))
+        (move-beginning-of-line 1))))
+  (global-set-key (kbd "C-a") 'my-move-to-bol)
+#+END_SRC
+*** Open file at cursor
+See http://ergoemacs.org/emacs/emacs_open_file_path_fast.html
+#+BEGIN_SRC emacs-lisp
+  (defun my-open-file-at-cursor ()
+    "Open the file path under cursor.
+  If there is text selection, uses the text selection for path.
+  If the path is starts with "http://", open the URL in browser.
+  Input path can be {relative, full path, URL}.
+  This command is similar to `find-file-at-point' but without
+  prompting for confirmation."
+        (interactive)
+        (let ((path (thing-at-point 'filename)))
+          (if (string-match-p "\\`https?://" path)
+              (browse-url path)
+            (if (file-exists-p path)
+                (find-file-other-window path)
+              (if (file-exists-p (concat path ".el"))
+                  (find-file-other-window (concat path ".el"))
+                (when (y-or-n-p (format "file doesn't exist: \"%s\". Create?" path))
+                  (find-file-other-window path)))))))
+        (global-set-key (kbd "<f8>")  'my-open-file-at-cursor)
 #+END_SRC
 ** my global keybindings
 #+BEGIN_SRC emacs-lisp
-  (global-set-key "\C-x4d"                'ffap-dired-other-window)
-  (global-set-key "\C-x4f"                'ffap-other-window)
-  (global-set-key "\C-x4r"                'ffap-read-only-other-window)
-  (global-set-key "\C-x5d"                'ffap-dired-other-frame)
-  (global-set-key "\C-x5f"                'ffap-other-frame)
-  (global-set-key "\C-x5r"                'ffap-read-only-other-frame)
-  (global-set-key "\C-x\C-d"              'ffap-list-directory)
-  (global-set-key "\C-x\C-f"              'find-file-at-point)
-  (global-set-key "\C-x\C-r"              'ffap-read-only)
-  (global-set-key "\C-x\C-v"              'ffap-alternate-file)
   (global-set-key "\C-xd"                 'dired-at-point)
-  (global-set-key (kbd "<C-S-down>")      'my-move-line-down)
-  (global-set-key (kbd "<C-S-up>")        'my-move-line-up)
   (global-set-key (kbd "<C-f5>")          'highlight-symbol-at-point)
   (global-set-key (kbd "<C-f6>")          'highlight-symbol-query-replace)
   (global-set-key (kbd "<C-f7>")          'highlight-symbol-prev)
   (global-set-key (kbd "<C-f8>")          'highlight-symbol-next)
-  (global-set-key (kbd "<C-kp-add>")      (lambda () (interactive) (text-scale-adjust 1)))
-  (global-set-key (kbd "<C-kp-subtract>") (lambda () (interactive) (text-scale-adjust -1)))
-  (global-set-key (kbd "<M-f2>")          'next-buffer)
+  (global-set-key (kbd "<C-kp-add>")
+                  (lambda () (interactive) (text-scale-adjust 1)))
+  (global-set-key (kbd "<C-kp-subtract>")
+                  (lambda () (interactive) (text-scale-adjust -1)))
   (global-set-key (kbd "<f1>")            'other-window)
-  (global-set-key (kbd "<f2>")            'my-next-buffer)
   (global-set-key (kbd "<f5>")            'nav-toggle)
-  (global-set-key (kbd "<f8>")            'ffap-other-window)
   (global-set-key (kbd "<f9>")            'delete-matching-lines)
+  (global-set-key (kbd "<M-f2>")          'next-buffer)
   (global-set-key (kbd "C-+")             'text-scale-adjust)
   (global-set-key (kbd "C--")             'text-scale-adjust)
   (global-set-key (kbd "C-<")             'mc/mark-previous-like-this)
   (global-set-key (kbd "C->")             'mc/mark-next-like-this)
-  (global-set-key (kbd "C-M-z")           'my-indent-defun)
   (global-set-key (kbd "C-c C-<")         'mc/mark-all-like-this)
-  (global-set-key (kbd "C-c d")           'my-delete-file-and-buffer)
-  (global-set-key (kbd "C-c e")           'my-toggle-eshell)
-  (global-set-key (kbd "C-c k")           'my-kill-other-buffers)
-  (global-set-key (kbd "C-c n")           'my-narrow-to-region-indirect)
   (global-set-key (kbd "C-c r")           'org-capture)
-  (global-set-key (kbd "C-c s")           'my-ddg)
   (global-set-key (kbd "C-x C-b")         'ibuffer)
-  (global-set-key (kbd "C-x C-f")         'ido-find-file)
   (global-set-key (kbd "C-x |")           'split-window-right)
   (global-set-key (kbd "C-x _")           'split-window-below)
   (global-set-key (kbd "C-z")             nil)
-  (global-set-key (kbd "M-#")             'my-ifdef-out)
-  (global-set-key (kbd "M-<")             'my-wrap-tag)
-  (global-set-key (kbd "M-=")             'my-align-equals)
-  (global-set-key (kbd "M-\\")            (lambda () (interactive) (just-one-space -1)))
+  (global-set-key (kbd "M-\\")
+                  (lambda () (interactive) (just-one-space -1)))
   (global-set-key (kbd "M-c")             'compile)
   (global-set-key (kbd "M-g")             'goto-line)
-  (global-set-key (kbd "M-j")             (lambda () (interactive) (join-line -1)))
+  (global-set-key (kbd "M-j")
+                  (lambda () (interactive) (join-line -1)))
   (global-set-key (kbd "M-n")             'next-error)
   (global-set-key (kbd "M-p")             'previous-error)
   (global-set-key (kbd "M-r")             'query-replace)
   (global-set-key (kbd "M-z")             'query-replace-regexp)
-  (global-set-key [(shift return)]        'my-insert-empty-line)
-  (global-set-key [C-S-mouse-3]           'ffap-menu)
-  (global-set-key [S-mouse-3]             'ffap-at-mouse)
   (global-set-key [mouse-3]               'imenu)
+(require 'indent-guide)
+(setq-default indent-guide-char "│")
+(indent-guide-global-mode)
 #+END_SRC
 * Spelling
-A list of words in this document that the spelling-checker doesn't like.
+A list of words in this document that the spelling-checker doesn't
+like. (These are not visible in the output, since they look like Org
+mode comments.)
 #  LocalWords:  LocalWords elpa ede untabify lua ctrl refactor simp
-#  LocalWords:  setq Casiello's Casiello toc num Sacha Chua's defun
+#  LocalWords:  setq Casiello toc num Sacha Chua defun
 #  LocalWords:  defuns startup src emacs defvar timeit defmacro progn
 #  LocalWords:  auth dir nt darwin concat el ELPA eval melpa hl svn
 #  LocalWords:  wgrep ffap fset utf recentf smartparens config alist
@@ -771,4 +785,9 @@ A list of words in this document that the spelling-checker doesn't like.
 #  LocalWords:  nMTag ifdef endif DuckDuckGo ddg url hexify substring
 #  LocalWords:  eql backend SSave eshell fullscreen minimap bufname
 #  LocalWords:  Refactor dired prev kp nav mc ibuffer imenu buf linux
-#  LocalWords:  BaseVercommn proced GitHub
+#  LocalWords:  BaseVercommn proced GitHub EasyPG wack doo ack lstset
+#  LocalWords:  basicstyle ttfamily keywordstyle bfseries stringstyle
+#  LocalWords:  commentstyle showstringspaces nhtml Solarized jiralib
+#  LocalWords:  solarized autosaves epg gpg nogroup mish ggtags eldoc
+#  LocalWords:  yasnippets ditaa ReQall htmlize inbox nAdded RSS arg
+#  LocalWords:  MobileOrg defadvice emacsredux bol

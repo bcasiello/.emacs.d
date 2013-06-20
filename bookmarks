@@ -2,14 +2,18 @@
 ;;; This format is meant to be slightly human-readable;
 ;;; nevertheless, you probably don't want to edit it.
 ;;; -*- End Of Bookmark File Format Version Stamp -*-
-(
+(("org-capture-last-stored"
+ (filename . "~/Dropbox/org/gtd.org")
+ (front-context-string . "*** TODO Set tru")
+ (rear-context-string . "apture\n** Tasks\n")
+ (position . 144076))
 ("org"
  (filename . "~/Dropbox/org/")
  (front-context-string . "100novels.org\n  ")
  (rear-context-string . "297 04-16 11:46 ")
  (position . 1))
 ("gtd"
- (filename . "~/Dropbox/org/gtd.org.gpg")
+ (filename . "~/AeroFS/org/gtd.org")
  (front-context-string . "* Projects\n :PRO")
  (rear-context-string)
  (position . 1))
